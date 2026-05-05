@@ -95,6 +95,7 @@ def download(source: str, out_dir: Path) -> dict:
             "uploader": info.get("uploader"),
             "duration": info.get("duration"),
             "id": info.get("id"),
+            "upload_date": info.get("upload_date"),
         },
     }
 

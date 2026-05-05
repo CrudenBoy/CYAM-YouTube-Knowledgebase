@@ -817,6 +817,37 @@ def pass2_enrichment(
 
 
 # ---------------------------------------------------------------------------
+# Dynamic dkd_doc_ref generation
+# ---------------------------------------------------------------------------
+
+def _build_dkd_ref(raw_ref: str, video_id: str) -> str:
+    """Build a dynamic dkd_doc_ref by appending the first 4 chars of the video ID.
+
+    If the raw_ref looks like a category prefix (e.g., 'DKD_OPAL', 'DKD_GWS'),
+    append '_' + first 4 chars of the video ID to make it unique per video.
+    Example: 'DKD_OPAL' + 'CW4i6dRO_b8' -> 'DKD_OPAL_CW4i'
+
+    If the raw_ref already contains a colon (e.g., 'PLAYBOOK:C:STEP1'),
+    it's a manually-specified full ref — leave it as-is.
+
+    If raw_ref is empty, return empty string.
+    """
+    if not raw_ref:
+        return ""
+
+    # If it contains a colon, it's a full ref (legacy format) — don't modify
+    if ":" in raw_ref:
+        return raw_ref
+
+    # It's a category prefix — append video ID stub
+    if video_id:
+        stub = video_id[:4]
+        return f"{raw_ref}_{stub}"
+
+    return raw_ref
+
+
+# ---------------------------------------------------------------------------
 # Pipeline Step: Flatten to CSV
 # ---------------------------------------------------------------------------
 
@@ -891,7 +922,7 @@ def flatten_to_csv(
                 "timestamp_seconds": start_s,
                 "url_with_timestamp": url_with_ts,
                 "transcript_chunk": _get_transcript_chunk(transcript_segments, start_s, end_s),
-                "dkd_doc_ref": dkd_ref,
+                "dkd_doc_ref": _build_dkd_ref(dkd_ref, video_id),
                 "key_concepts": enrichment.get("key_concepts", ""),
                 "faq_question": enrichment.get("faq_question", ""),
                 "faq_answer": enrichment.get("faq_answer", ""),
